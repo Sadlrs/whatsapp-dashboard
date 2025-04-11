@@ -5,14 +5,13 @@ const bodyParser = require('body-parser');
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware to parse JSON request bodies
 app.use(bodyParser.json());
 
-// WhatsApp Business API Configuration
-const WHATSAPP_API_URL = 'https://graph.facebook.com/v13.0/405968615925991/messages';
-const ACCESS_TOKEN = 'EAAUqacNsdMsBOzA2oA9wqGg78XrBG4fx5XhDioLJBtkgsQeZAraXZCwbMUqDgJniWswaZCtmuAeTGPTtkHxzWFQZBAjpipb1XLGpp5GnPqZAia3djUmZA8FuqawlRCFxiKBuveB6NRgKDU5T6Lp3B3sEanoytK3s7gZAdTwhSdYIme5ZCT3ZBDZBlXpZBHIQdr8OkJlEI4PZCQBvdXet7v7waxwUPsS8';
+// WhatsApp API Configuration
+const WHATSAPP_API_URL = `https://graph.facebook.com/v13.0/${process.env.PHONE_NUMBER_ID}/messages`;
+const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 
-// Send message to WhatsApp API
+// Endpoint to send messages via WhatsApp Cloud API
 app.post('/api/send-message', async (req, res) => {
   const { message } = req.body;
 
@@ -21,20 +20,25 @@ app.post('/api/send-message', async (req, res) => {
       WHATSAPP_API_URL,
       {
         messaging_product: 'whatsapp',
-        to: '201001337991', // The phone number to send the message to
+        to: process.env.RECIPIENT_PHONE_NUMBER,
+        type: 'text',
         text: { body: message },
       },
       {
         headers: {
           Authorization: `Bearer ${ACCESS_TOKEN}`,
+          'Content-Type': 'application/json',
         },
       }
     );
-    console.log('WhatsApp API response:', response.data);  // Log WhatsApp API response
-
-    res.json({ status: 'Message sent', data: response.data });
+    res.json(response.data);
   } catch (error) {
     console.error('Error sending message to WhatsApp:', error);
     res.status(500).json({ error: 'Failed to send message' });
   }
+});
+
+// Start server
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
 });
